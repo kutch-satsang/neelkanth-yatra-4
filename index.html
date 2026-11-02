@@ -1,4 +1,5 @@
-<!doctype html><html lang="gu"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>*,*::before,*::after{box-sizing:border-box}html,body{margin:0;padding:0}</style></head><body><title>નીલકંઠ યાત્રા ૪ Admin</title>
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>નીલકંઠ યાત્રા ૪ Admin</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Gujarati:wght@400;600;700;800&family=Noto+Serif+Gujarati:wght@700;800&display=swap">
@@ -302,8 +303,7 @@ function diffDays(a, b) { return Math.round((dObj(b) - dObj(a)) / 864e5); }
 function fmtTm(tm) { const [h, m] = tm.split(':').map(Number); const ap = h >= 12 ? 'PM' : 'AM'; const hh = h % 12 || 12; return hh + ':' + String(m).padStart(2, '0') + ' ' + ap; }
 
 /* ---------- test mode: 5 dummy days from tomorrow (display only, cloud data untouched) ---------- */
-let testMode = true, testStart = '';
-try { testMode = localStorage.getItem('nk_test') !== '0'; testStart = localStorage.getItem('nk_test_start') || ''; } catch (e) {}
+let testMode = false, testStart = ''; /* test off by default: real yatra dates (6 Jan 2027) */
 testStart = '2026-11-01'; /* test: 1–7 Nov */
 const vdays = () => testMode ? S.days.slice(0, 7) : S.days;
 const dateAt = i => testMode ? addDays(testStart, i) : (S.days[i] || {}).date;
@@ -752,5 +752,6 @@ setInterval(() => { if (!$('#sheet')) { if (!dayTouched) { const i = todayIdx();
   hdr(); if (db) subscribe(); else { cloudState = 'err'; hdr(); }
 })();
 </script>
+
 
 </body></html>
