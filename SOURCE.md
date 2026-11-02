@@ -14,3 +14,5 @@
 - Nilkanth Yatra લોગો (સોનેરી કિનારી વાળો) ટૅબ favicon અને ફોન હોમ સ્ક્રીન આઇકોન તરીકે ઉમેર્યો.
 - ફાઈલો: icons/ (favicon-32, icon-192, icon-512, apple-touch-icon, icon-maskable-512), manifest.webmanifest; index.html ના head માં link લીટીઓ.
 - આઇકોન માત્ર GitHub લિંક પર; Claude લિંક પર નહીં.
+
+- 2026-11-03 ~09:05 Adelaide: ફોનમાં આઇકોન ન દેખાયો → cache તોડવા icon/manifest લિંકમાં ?v=2 ઉમેર્યું.
