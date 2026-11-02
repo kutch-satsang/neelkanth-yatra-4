@@ -197,6 +197,14 @@ header.hw.night .cl{background:rgba(190,200,240,.3)}
 .cal{display:inline-flex;flex-direction:column;width:30px;height:30px;border-radius:6px;overflow:hidden;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.35);vertical-align:middle}
 .cal s{background:#d6332f;color:#fff;font-size:8.5px;font-weight:800;line-height:11px;text-decoration:none;text-align:center}
 .cal b{flex:1;display:grid;place-items:center;color:#222;font-size:15px;font-weight:800;line-height:1}
+/* v18: people sort row + missing-mobile chip */
+.srt{align-items:center}.srtl{font-size:14px;font-weight:700;color:var(--mute)}
+.chip.srtc{border-color:var(--gold)}.chip.srtc.on{background:var(--gold);color:#2a1720;border-color:var(--gold)}
+.miss{display:inline-block;margin-top:4px;background:var(--saf);color:#2a1720;border-radius:14px;padding:2px 12px;font-size:13px;font-weight:800}
+.row.prow{padding:0 8px 0 0;grid-template-columns:52px 1fr auto;gap:10px;overflow:hidden;align-items:stretch}
+.prow>.num{width:auto;height:auto;border-radius:0;background:var(--surf2);color:var(--ink);font-size:17px;border-right:2px solid var(--gold)}
+.prow>.num.s{background:var(--mar);color:var(--onmar)}
+.prow>.nm,.prow>.acts{align-self:center;padding-block:8px}
 /* sheet */
 #shade{position:absolute;inset:0;background:rgba(20,6,12,.55);z-index:20}
 #sheet{position:absolute;left:0;right:0;bottom:0;max-height:92%;z-index:21;background:var(--bg);border-radius:24px 24px 0 0;display:flex;flex-direction:column;box-shadow:0 -10px 40px rgba(0,0,0,.35);border-top:4px solid var(--gold)}
@@ -283,7 +291,7 @@ const LB = {'સવારે':360,'દિવસે':600,'બપોરે':780,'�
 
 let S = clone(DEF);
 let db = null, canW = null, seeded = false, daysLoaded = false, edit = false, cloudState = 'load';
-let view = 'day', dayIdx = 0, dayTouched = false, pPage = 0, plPage = 0, pFilter = 'all';
+let view = 'day', dayIdx = 0, dayTouched = false, pPage = 0, plPage = 0, pFilter = 'all', pSort = 'no', pAsc = true;
 let ticks = {}, stripX = null, lastCentered = -1;
 S.acc = [];
 let accTab = 'day', accDate = '', accPage = 0, accT = 'out', accC = '', accQ = true, payFilter = 'all', dlc = null;
@@ -486,13 +494,18 @@ function pager(k, p, pages) { return '<div class="pager"><button class="arrow" d
 function vPeople() {
   const all = S.people, act = all.filter(p => p.st !== 'x'), can = all.filter(p => p.st === 'x');
   const f = {all: all, bh: all.filter(p => !p.sant), sa: all.filter(p => p.sant), x: can}[pFilter];
-  const per = 8, pages = Math.max(1, Math.ceil(f.length / per)); pPage = Math.min(pPage, pages - 1);
+  const gcmp = (a, b) => String(a.n).localeCompare(String(b.n), 'gu');
+  let fl = f.slice();
+  if (pSort === 'name') fl.sort(gcmp);
+  else if (pSort === 'age') fl.sort((a, b) => ((a.sant ? 1 : 0) - (b.sant ? 1 : 0)) || (pAsc ? (a.age || 0) - (b.age || 0) : (b.age || 0) - (a.age || 0)) || gcmp(a, b));
+  const per = 8, pages = Math.max(1, Math.ceil(fl.length / per)); pPage = Math.min(pPage, pages - 1);
+  const SC = (k, t) => '<button class="chip srtc' + (pSort === k ? ' on' : '') + '" data-a="psort" data-k="' + k + '">' + t + '</button>';
   const CH = (k, t) => '<button class="chip' + (pFilter === k ? ' on' : '') + '" data-a="pf" data-k="' + k + '">' + t + '</button>';
   return '<div class="sec">👥 યાત્રિકો</div><div class="chips"><span class="chip">કુલ ' + gu(all.length) + '</span><span class="chip">ચાલુ ' + gu(act.length) + '</span><span class="chip">રદ ' + gu(can.length) + '</span></div>' +
-    '<div class="chips">' + CH('all', 'બધા') + CH('bh', 'હરિભક્તો') + CH('sa', 'સંતો') + CH('x', 'રદ') + '</div><div class="list">' +
-    (f.slice(pPage * per, pPage * per + per).map(p => '<div class="row' + (p.st === 'x' ? ' x' : '') + '"><div class="num' + (p.sant ? ' s' : '') + '">' + (p.sant ? '🙏' : p.no) + '</div><div class="nm">' + esc(p.n) + '<small>' + (p.age ? 'ઉંમર ' + esc(gu(p.age)) : '') + (p.mob ? ' • 📞 ' + esc(p.mob) : '') + (p.st === 'x' ? ' • રદ' : '') + payTxt(p) + '</small></div><div class="acts">' +
-      (!p.sant && p.st !== 'x' && fundOf(p) ? '<button class="ib" data-a="pay" data-id="' + esc(p.id) + '" aria-label="ફાળો">💰</button>' : '') + (p.mob ? '<button class="ib" data-a="copy" data-id="' + esc(p.id) + '" aria-label="નંબર કોપી">📋</button>' : '') + (edit ? '<button class="ib" data-a="person" data-id="' + esc(p.id) + '" aria-label="ફેરફાર">✏️</button><button class="ib" data-a="cancel" data-id="' + esc(p.id) + '" aria-label="રદ">' + (p.st === 'x' ? '↩' : '❌') + '</button>' : '') + '</div></div>').join('') || '<div class="empty">કોઈ નથી</div>') + '</div>' +
-    pager('pp', pPage, pages) + (edit ? '<button class="add" data-a="personadd">➕ યાત્રિક ઉમેરો</button>' : '');
+    '<div class="chips">' + CH('all', 'બધા') + CH('bh', 'હરિભક્તો') + CH('sa', 'સંતો') + CH('x', 'રદ') + '</div><div class="chips srt"><span class="srtl">ક્રમ:</span>' + SC('name', 'ક ખ ગ') + SC('age', 'ઉંમર ' + (pSort === 'age' && !pAsc ? '↓' : '↑')) + '</div><div class="list">' +
+    (fl.slice(pPage * per, pPage * per + per).map((p, i) => '<div class="row prow' + (p.st === 'x' ? ' x' : '') + '"><div class="num' + (p.sant ? ' s' : '') + '">' + (pPage * per + i + 1) + '</div><div class="nm">' + esc(p.n) + '<small>' + (p.age ? 'ઉંમર ' + esc(gu(p.age)) : '') + (p.mob ? ' • 📞 ' + esc(p.mob) : '') + (p.st === 'x' ? ' • રદ' : '') + payTxt(p) + '</small>' + (!p.mob && !p.sant ? '<button class="miss" data-a="person" data-id="' + esc(p.id) + '">📞 + મોબાઇલ ઉમેરો</button>' : '') + '</div><div class="acts">' +
+      (!p.sant && p.st !== 'x' && fundOf(p) ? '<button class="ib" data-a="pay" data-id="' + esc(p.id) + '" aria-label="ફાળો">💰</button>' : '') + (p.mob ? '<button class="ib" data-a="copy" data-id="' + esc(p.id) + '" aria-label="નંબર કોપી">📋</button>' : '') +  '<button class="ib" data-a="person" data-id="' + esc(p.id) + '" aria-label="ફેરફાર">✏️</button>' + (edit ? '<button class="ib" data-a="cancel" data-id="' + esc(p.id) + '" aria-label="રદ">' + (p.st === 'x' ? '↩' : '❌') + '</button>' : '') + '</div></div>').join('') || '<div class="empty">કોઈ નથી</div>') + '</div>' +
+    pager('pp', pPage, pages) + '<button class="add" data-a="personadd">➕ નવું નામ ઉમેરો</button>';
 }
 function vMore() {
   return '<div class="sec">☰ વધુ</div><div class="menu">' +
@@ -660,6 +673,7 @@ document.addEventListener('click', async ev => {
   if (a === 'today') { const i = todayIdx(); dayIdx = i >= 0 ? i : 0; view = 'day'; dayTouched = true; lastCentered = -1; if (i < 0) toast('આજે યાત્રાનો દિવસ નથી'); return render(); }
   if (a === 'pg') { const k = t.dataset.k, dl = +t.dataset.d; if (k === 'pl') plPage += dl; else if (k === 'ac') accPage += dl; else pPage += dl; return render(); }
   if (a === 'pf') { pFilter = t.dataset.k; pPage = 0; return render(); }
+  if (a === 'psort') { const k = t.dataset.k; if (k === 'name' && pSort === 'name') pSort = 'no'; else if (k === 'age' && pSort === 'age') { if (pAsc) pAsc = false; else { pSort = 'no'; pAsc = true; } } else { pSort = k; pAsc = true; } pPage = 0; return render(); }
   if (a === 'place') return placeSheet(id);
   if (a === 'note') return noteSheet(id);
   if (a === 'ev') return evSheet(id);
